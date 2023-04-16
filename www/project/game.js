@@ -8,6 +8,7 @@ import { Pathfinding } from '../libs/three-pathfinding.module.js';
 import * as dat from 'lil-gui'
 
 const assetsPath = '../assets/';
+const gui = new dat.GUI();
 
 class Game{
 	constructor(){		
@@ -72,6 +73,8 @@ class Game{
     	this.renderer.domElement.addEventListener( 'click', raycast, false );
 			
     	this.loading = true;
+
+		this.numGhouls = 3
     	
     	const self = this;
     	const mouse = { x:0, y:0 };
@@ -183,7 +186,6 @@ class Game{
 		const loader = new GLTFLoader();
 		const self = this;
 		
-		// whaaaatt how to use these?????????
 		const anims = [
 					{start:30, end:59, name:"backpedal", loop:true},
 					{start:90, end:129, name:"bite", loop:false},
@@ -256,10 +258,17 @@ class Game{
 				self.cameras = { wide, rear, front };
 				self.activeCamera = wide;
 				
-				const gui = new dat.GUI();
+				// const gui = new dat.GUI();
 				gui.add(self, 'switchCamera');
 				gui.add(self, 'showPath');
 				gui.add(self, 'showShadowHelper');
+				gui.add(self, 'numGhouls').min(0).max(10).step(1).name("Number of Ghouls").onFinishChange(value => {
+					console.log("in gui function")
+					// need to remove the old gltfs from here somehow
+					// or somehow from self.ghouls?
+
+					self.loadGhoul(value, true)
+				});
 				
 				self.loadGhoul();
 
@@ -279,11 +288,12 @@ class Game{
 		);
 	}
 	
-	loadGhoul(){
+	loadGhoul(numberOfGhouls, clear = false){
 		const loader = new GLTFLoader();
 		const self = this;
 
-		const numGhouls = 3
+		numberOfGhouls = self.numGhouls
+		
 
 		const anims = [
 					{start:81, end:161, name:"idle", loop:true},
@@ -302,9 +312,19 @@ class Game{
 			// called when the resource is loaded
 			function ( gltf ) {
 				const gltfs = [gltf];
-				// change bound to add/subtract ghouls
-				for(let i=0; i<numGhouls; i++) gltfs.push(self.cloneGLTF(gltf));
+
+				// not functional
+				if (clear) {
+					console.log("Clear the ghouls")
+					for(let i=0; i<=numberOfGhouls; i++) gltfs.pop(i);
+				}
 				
+				console.log("Add the ghouls")
+				for(let i=0; i<numberOfGhouls; i++) gltfs.push(self.cloneGLTF(gltf));
+
+				// this removes the ones that were just added
+				//for(let i=0; i<=numberOfGhouls; i++) gltfs.pop(i);
+
 				self.ghouls = [];
 				
 				gltfs.forEach(function(gltf){
@@ -426,7 +446,6 @@ class Game{
 		return this.debug.showShadowHelper;
 	}
 	
-	// not quite sure if the camera can be switched
 	switchCamera(){
 		if (this.activeCamera==this.cameras.wide){
 			this.activeCamera = this.cameras.rear;
