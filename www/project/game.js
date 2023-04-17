@@ -245,16 +245,27 @@ class Game{
 				const wide = new THREE.Object3D();
 				wide.position.copy(self.camera.position);
 				wide.target = new THREE.Vector3(0,0,0);
+
 				const rear = new THREE.Object3D()
 				rear.position.set(0, 500, -500);
 				rear.target = self.fred.object.position;
 				self.fred.object.add(rear);
+
 				const front = new THREE.Object3D()
 				front.position.set(0, 500, 500);
 				front.target = self.fred.object.position;
 				self.fred.object.add(front);
-				self.cameras = { wide, rear, front };
-				self.activeCamera = wide;
+
+				// target property may be messing this up
+				const fps = new THREE.Object3D();
+				fps.position.set(10, 130, -50);
+				fps.target = self.fred.object.position;
+				self.fred.object.add(fps)
+				//console.log(self.fred.object.position)
+
+
+				self.cameras = { wide, rear, front, fps };
+				self.activeCamera = fps;
 				
 				const gui = new dat.GUI();
 				gui.add(self, 'switchCamera');
@@ -433,7 +444,9 @@ class Game{
 		}else if (this.activeCamera==this.cameras.rear){
 			this.activeCamera = this.cameras.front;
 		}else if (this.activeCamera==this.cameras.front){
-			this.activeCamera = this.cameras.wide;
+			this.activeCamera = this.cameras.fps;
+		} else if (this.activeCamera==this.cameras.fps) {
+			this.activeCamera = this.cameras.wide
 		}
 	}
 		
@@ -446,6 +459,7 @@ class Game{
 		this.sun.position.y += 10;
 		this.sun.position.z += 10;
 		
+		// maybe adjust here too
 		if (this.activeCamera && this.controls===undefined){
 			this.camera.position.lerp(this.activeCamera.getWorldPosition(new THREE.Vector3()), 0.1);
 			const pos = this.activeCamera.target.clone();
