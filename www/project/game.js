@@ -183,7 +183,6 @@ class Game{
 		const loader = new GLTFLoader();
 		const self = this;
 		
-		// whaaaatt how to use these?????????
 		const anims = [
 					{start:30, end:59, name:"backpedal", loop:true},
 					{start:90, end:129, name:"bite", loop:false},
@@ -284,6 +283,7 @@ class Game{
 		const self = this;
 
 		const numGhouls = 3
+		let spotLight, spotLightTarget
 
 		const anims = [
 					{start:81, end:161, name:"idle", loop:true},
@@ -328,6 +328,7 @@ class Game{
 						npc: true
 					};
 
+
 					const ghoul = new Player(options);
 
 					const scale = 0.015;
@@ -335,8 +336,28 @@ class Game{
 
 					ghoul.object.position.copy(self.randomWaypoint);
 					ghoul.newPath(self.randomWaypoint);
+
+					spotLight = new THREE.SpotLight(0xffffff);
+					spotLight.position.copy(ghoul.object.position);
+					spotLight.shadow.mapSize.width = 512;
+					spotLight.shadow.mapSize.height = 512;
+					spotLight.shadow.camera.near = 500;
+					spotLight.shadow.camera.far = 4000;
+					spotLight.shadow.camera.fov = 30;
+					// high intensity for debugging purposes
+					spotLight.intensity = 2;
+					spotLight.angle = Math.PI / 8;
+					// issue is that spotlights / targets look at the origin
+					// also there may be too may spotlights getting added?
+					spotLightTarget = new THREE.Object3D();
+					spotLightTarget.lookAt(ghoul.object.position)
+					spotLight.target = spotLightTarget
+					//spotLight.target.position.set(ghoul.object.position)
+					ghoul.object.add(spotLight)
+					console.log("add spotLight")
 					
 					self.ghouls.push(ghoul);
+					console.log(ghoul)
 				});
 							  
 				self.render(); 
@@ -455,6 +476,12 @@ class Game{
 		
 		this.fred.update(dt);
 		this.ghouls.forEach( ghoul => { ghoul.update(dt) });
+
+		// could try something here like the sun maybe
+		// this.ghouls.forEach( ghoul => { ghoul.object.children[3].target.position.copy(ghoul.object.position) });
+		// this.ghouls.forEach( ghoul => { console.log(ghoul.object.children[3].target) });
+		//debugger;
+		
 		
 		this.renderer.render(this.scene, this.camera);
 	}
