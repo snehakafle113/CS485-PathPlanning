@@ -283,7 +283,6 @@ class Game{
 		const self = this;
 
 		const numGhouls = 3
-		let spotLight, spotLightTarget
 
 		const anims = [
 					{start:81, end:161, name:"idle", loop:true},
@@ -329,35 +328,17 @@ class Game{
 					};
 
 
-					const ghoul = new Player(options);
+					const ghoul = new Player(options);				
+					ghoul.colliding = false	
 
 					const scale = 0.015;
 					ghoul.object.scale.set(scale, scale, scale);
 
 					ghoul.object.position.copy(self.randomWaypoint);
 					ghoul.newPath(self.randomWaypoint);
-
-					spotLight = new THREE.SpotLight(0xffffff);
-					spotLight.position.copy(ghoul.object.position);
-					spotLight.shadow.mapSize.width = 512;
-					spotLight.shadow.mapSize.height = 512;
-					spotLight.shadow.camera.near = 500;
-					spotLight.shadow.camera.far = 4000;
-					spotLight.shadow.camera.fov = 30;
-					// high intensity for debugging purposes
-					spotLight.intensity = 2;
-					spotLight.angle = Math.PI / 8;
-					// issue is that spotlights / targets look at the origin
-					// also there may be too may spotlights getting added?
-					spotLightTarget = new THREE.Object3D();
-					spotLightTarget.lookAt(ghoul.object.position)
-					spotLight.target = spotLightTarget
-					//spotLight.target.position.set(ghoul.object.position)
-					ghoul.object.add(spotLight)
-					console.log("add spotLight")
 					
 					self.ghouls.push(ghoul);
-					console.log(ghoul)
+
 				});
 							  
 				self.render(); 
@@ -447,7 +428,6 @@ class Game{
 		return this.debug.showShadowHelper;
 	}
 	
-	// not quite sure if the camera can be switched
 	switchCamera(){
 		if (this.activeCamera==this.cameras.wide){
 			this.activeCamera = this.cameras.rear;
@@ -457,6 +437,10 @@ class Game{
 			this.activeCamera = this.cameras.wide;
 		}
 	}
+
+	distance(x1, z1, x2, z2) {
+        return Math.sqrt((x2 - x1) * (x2 - x1) + (z2 - z1) * (z2 - z1));
+    }
 		
 	render(){
 		const dt = this.clock.getDelta();
@@ -475,13 +459,44 @@ class Game{
 		}
 		
 		this.fred.update(dt);
-		this.ghouls.forEach( ghoul => { ghoul.update(dt) });
+		this.ghouls.forEach( ghoul => { ghoul.update(dt) });	
+		//this.ghouls.forEach( ghoul => { ghoul.update(dt) });		// makes them go faster
 
-		// could try something here like the sun maybe
-		// this.ghouls.forEach( ghoul => { ghoul.object.children[3].target.position.copy(ghoul.object.position) });
-		// this.ghouls.forEach( ghoul => { console.log(ghoul.object.children[3].target) });
-		//debugger;
-		
+		// did it all here but if we have time i'll make it nicer
+		// TODO: collision avoidance
+        this.ghouls.forEach( ghoul => { 
+            this.ghouls.forEach( ghoul2 => {
+                let distance_of_ghouls = self.distance(ghoul.object.position.x, ghoul.object.position.z, ghoul2.object.position.x, ghoul2.object.position.z)
+
+                if (distance_of_ghouls <= ghoul.nodeRadius && ghoul.object.id != ghoul2.object.id) {
+                    ghoul.colliding = true;
+                    ghoul2.colliding = true;
+					console.log(ghoul.object.id + " is colliding with " + ghoul2.object.id)
+					console.log("distance is " + distance_of_ghouls)
+                }
+                else if (distance_of_ghouls > ghoul.nodeRadius && ghoul.colliding && ghoul2.colliding) {
+                    ghoul.colliding = false;
+                    ghoul2.colliding = false;
+                }
+            })
+            
+        });
+
+		this.ghouls.forEach( ghoul => { 
+			let distance_with_fred = self.distance(ghoul.object.position.x, ghoul.object.position.z, this.fred.object.position.x, this.fred.object.position.z)
+
+			if (distance_with_fred <= ghoul.nodeRadius) {
+				ghoul.colliding = true;
+				this.fred.colliding = true;
+				console.log(ghoul.object.id + " is colliding with " + this.fred.name)
+				console.log("distance is " + distance_with_fred)
+			}
+			else if (distance_with_fred > ghoul.nodeRadius && ghoul.colliding && this.fred.colliding) {
+				ghoul.colliding = false;
+				this.fred.colliding = false;
+			}
+            
+        });
 		
 		this.renderer.render(this.scene, this.camera);
 	}
