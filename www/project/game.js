@@ -318,6 +318,7 @@ class Game{
 					const options = {
 						object: object,
 						speed: 4,
+						nodeRadius: 1,
 						assetsPath: assetsPath,
 						loader: loader,
 						anims: anims,
@@ -462,8 +463,6 @@ class Game{
 		this.ghouls.forEach( ghoul => { ghoul.update(dt) });	
 		//this.ghouls.forEach( ghoul => { ghoul.update(dt) });		// makes them go faster
 
-		// did it all here but if we have time i'll make it nicer
-		// TODO: collision avoidance
         this.ghouls.forEach( ghoul => { 
             this.ghouls.forEach( ghoul2 => {
                 let distance_of_ghouls = self.distance(ghoul.object.position.x, ghoul.object.position.z, ghoul2.object.position.x, ghoul2.object.position.z)
@@ -473,6 +472,8 @@ class Game{
                     ghoul2.colliding = true;
 					console.log(ghoul.object.id + " is colliding with " + ghoul2.object.id)
 					console.log("distance is " + distance_of_ghouls)
+					console.log(ghoul.object.id + ": " + ghoul.actionName)
+					console.log(ghoul2.object.id + ": " + ghoul2.actionName)
                 }
                 else if (distance_of_ghouls > ghoul.nodeRadius && ghoul.colliding && ghoul2.colliding) {
                     ghoul.colliding = false;
@@ -497,6 +498,20 @@ class Game{
 			}
             
         });
+		// TODO: they sometimes get stuck (possibly due to waypoints?)
+		// animation changes from walk to idle
+		// calculatedPath becomes null
+		this.ghouls.forEach( ghoul => {
+			if (ghoul.colliding) {
+				ghoul.newPath(self.randomWaypoint)
+			}
+			if (ghoul.actionName == "idle") {
+				console.log(ghoul.object.id + " IS IDLING")
+				//console.log(ghoul.calculatedPath.length)
+				ghoul.newPath(self.randomWaypoint)
+				console.log(ghoul.calculatedPath)
+			}
+		})
 		
 		this.renderer.render(this.scene, this.camera);
 	}
