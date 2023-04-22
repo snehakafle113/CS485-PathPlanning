@@ -439,11 +439,13 @@ class Game{
 	
 	// not quite sure if the camera can be switched
 	switchCamera(){
+		this.fred.object.children[3].material.visible = true;
 		if (this.activeCamera==this.cameras.wide){
 			this.activeCamera = this.cameras.rear;
 		}else if (this.activeCamera==this.cameras.rear){
 			this.activeCamera = this.cameras.front;
 		}else if (this.activeCamera==this.cameras.front){
+			this.fred.object.children[3].material.visible = false;
 			this.activeCamera = this.cameras.fps;
 		} else if (this.activeCamera==this.cameras.fps) {
 			this.activeCamera = this.cameras.wide
