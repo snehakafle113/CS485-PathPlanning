@@ -4,7 +4,6 @@ import { RGBELoader } from '../libs/RGBELoader.js';
 import { Player } from '../libs/Player.js';
 import { LoadingBar } from '../libs/LoadingBar.js';
 import { Pathfinding } from '../libs/three-pathfinding.module.js';
-//import * as dat from '../libs/dat.gui.module.js';
 import * as dat from 'lil-gui'
 
 const assetsPath = '../assets/';
@@ -183,7 +182,6 @@ class Game{
 		const loader = new GLTFLoader();
 		const self = this;
 		
-		// whaaaatt how to use these?????????
 		const anims = [
 					{start:30, end:59, name:"backpedal", loop:true},
 					{start:90, end:129, name:"bite", loop:false},
@@ -256,16 +254,14 @@ class Game{
 				front.target = self.fred.object.position;
 				self.fred.object.add(front);
 
-				// target property may be messing this up
 				const fps = new THREE.Object3D();
 				fps.position.set(10, 130, -50);
 				fps.target = self.fred.object.position;
 				self.fred.object.add(fps)
-				//console.log(self.fred.object.position)
 
 
 				self.cameras = { wide, rear, front, fps };
-				self.activeCamera = fps;
+				self.activeCamera = wide;
 				
 				const gui = new dat.GUI();
 				gui.add(self, 'switchCamera');
@@ -437,7 +433,6 @@ class Game{
 		return this.debug.showShadowHelper;
 	}
 	
-	// not quite sure if the camera can be switched
 	switchCamera(){
 		this.fred.object.children[3].material.visible = true;
 		if (this.activeCamera==this.cameras.wide){
@@ -461,7 +456,6 @@ class Game{
 		this.sun.position.y += 10;
 		this.sun.position.z += 10;
 		
-		// maybe adjust here too
 		if (this.activeCamera && this.controls===undefined){
 			this.camera.position.lerp(this.activeCamera.getWorldPosition(new THREE.Vector3()), 0.1);
 			const pos = this.activeCamera.target.clone();
