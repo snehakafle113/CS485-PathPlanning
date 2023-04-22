@@ -393,7 +393,6 @@ class Game{
 				const gltfs = [gltf];
 
 				for(let i=0; i<addGhoulsNum; i++) {
-					console.log("i is " + i)
 					gltfs.push(self.cloneGLTF(gltf));
 				}
 
