@@ -13,7 +13,7 @@ class Player{
 		
 		this.object = options.object;
 		this.pathLines = new THREE.Object3D();
-		this.pathColor = new THREE.Color(0xFFFFFF);
+		this.pathColor = new THREE.Color( Math.random() * 0xFFFFFF );
 		this.nodeRadius = (options.nodeRadius) ? options.nodeRadius : 0.2;
 		
 		options.app.scene.add(this.pathLines);
@@ -56,39 +56,52 @@ class Player{
 	}
 	
 	newPath(pt){
-        const player = this.object;
-        
-        if (this.pathfinder===undefined){
-            this.calculatedPath = [ pt.clone() ];
-            this.setTargetDirection();
-            return;
-        }
-        		
-		// Calculate a path to the target and store it
-		this.calculatedPath = this.pathfinder.findPath(player.position, pt, this.ZONE, this.navMeshGroup);
-		
-		if (this.calculatedPath && this.calculatedPath.length) {
-			this.action = 'walk';
+		try {
+			const player = this.object;
 			
-			this.setTargetDirection();
-			
-			if (this.app.debug.showPath && !this.npc){
-				this.showPathLines();
+			if (this.pathfinder===undefined){
+				this.calculatedPath = [ pt.clone() ];
+				this.setTargetDirection();
+				return;
 			}
-		} else {
-			this.action = 'idle';
-			if (this.pathLines) this.app.scene.remove(this.pathLines);
+					
+			// Calculate a path to the target and store it
+			this.calculatedPath = this.pathfinder.findPath(player.position, pt, this.ZONE, this.navMeshGroup);
+			
+			if (this.calculatedPath && this.calculatedPath.length) {
+				this.action = 'walk';
+				
+				this.setTargetDirection();
+				this.showPathLines()
+				if (this.app.debug.showPath && !this.npc){
+					this.showPathLines();
+				}
+			} else {
+				console.log('in the else of newpath()')
+				// this.dead = true;
+				this.action = 'idle';
+				//debugger;
+				
+				if (this.pathLines) this.app.scene.remove(this.pathLines);
+			}
+		} catch (e) {
+			console.log("new path error")
+			console.log(e)
 		}
 	}
 	
 	setTargetDirection(){
-		const player = this.object;
-		const pt = this.calculatedPath[0].clone();
-		pt.y = player.position.y;
-		const quaternion = player.quaternion.clone();
-		player.lookAt(pt);
-		this.quaternion = player.quaternion.clone();
-		player.quaternion.copy(quaternion);
+		try {
+			const player = this.object;
+			const pt = this.calculatedPath[0].clone();
+			pt.y = player.position.y;
+			const quaternion = player.quaternion.clone();
+			player.lookAt(pt);
+			this.quaternion = player.quaternion.clone();
+			player.quaternion.copy(quaternion);
+		} catch (e) {
+			console.log(e)
+		}
 	}
 	
 	showPathLines(){
@@ -188,7 +201,16 @@ class Player{
                 }
             }
         }else{
-            if (this.npc && !this.dead) this.newPath(this.app.randomWaypoint);
+            if (this.npc && !this.dead) {
+			//if (this.npc && !this.dead || this.colliding) {
+				this.newPath(this.app.randomWaypoint);
+				// console.log(this)
+			} else {
+				// may be helpful for the remove
+				//console.log(this)
+				//debugger;
+				
+			}
         }
     }
 }

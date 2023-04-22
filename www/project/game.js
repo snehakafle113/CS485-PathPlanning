@@ -318,7 +318,7 @@ class Game{
 					const options = {
 						object: object,
 						speed: 4,
-						nodeRadius: 1,
+						nodeRadius: 0.2,
 						assetsPath: assetsPath,
 						loader: loader,
 						anims: anims,
@@ -461,7 +461,7 @@ class Game{
 		
 		this.fred.update(dt);
 		this.ghouls.forEach( ghoul => { ghoul.update(dt) });	
-		//this.ghouls.forEach( ghoul => { ghoul.update(dt) });		// makes them go faster
+		this.ghouls.forEach( ghoul => { ghoul.update(dt) });		// makes them go faster
 
         this.ghouls.forEach( ghoul => { 
             this.ghouls.forEach( ghoul2 => {
@@ -471,7 +471,7 @@ class Game{
                     ghoul.colliding = true;
                     ghoul2.colliding = true;
 					console.log(ghoul.object.id + " is colliding with " + ghoul2.object.id)
-					console.log("distance is " + distance_of_ghouls)
+					//console.log("distance is " + distance_of_ghouls)
 					console.log(ghoul.object.id + ": " + ghoul.actionName)
 					console.log(ghoul2.object.id + ": " + ghoul2.actionName)
                 }
