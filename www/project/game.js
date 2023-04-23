@@ -70,6 +70,7 @@ class Game{
 		
 		const raycaster = new THREE.Raycaster();
     	this.renderer.domElement.addEventListener( 'click', raycast, false );
+		this.renderer.domElement.addEventListener('contextmenu', addObstacles);
 			
     	this.loading = true;
     	
@@ -105,6 +106,36 @@ class Game{
 				
 				self.fred.newPath(pt, true);
 			}	
+		}
+
+		function addObstacles(e) {
+			if (self.loading) return;
+			e.preventDefault()
+
+			mouse.x = ( e.clientX / window.innerWidth ) * 2 - 1;
+			mouse.y = - ( e.clientY / window.innerHeight ) * 2 + 1;
+
+			console.log("You right-clicked at (" + mouse.x + ", " + mouse.y + ")")
+
+			raycaster.setFromCamera( mouse, self.camera );    
+
+			const intersects = raycaster.intersectObject( self.navmesh );
+
+			for (var i = 0; i < intersects.length; i++) {
+	
+				const boxGeometry = new THREE.BoxGeometry(2, 2, 2);
+				const boxMaterial = new THREE.MeshPhongMaterial( {
+					color: 0x4b3621
+				});
+				const crate = new THREE.Mesh( boxGeometry, boxMaterial );
+				crate.castShadow = true;
+				crate.position.set(
+					intersects[i].point.x, 
+					intersects[i].point.y + 0.5, 
+					intersects[i].point.z
+					);
+				self.scene.add(crate);
+			}
 		}
 		
 		window.addEventListener('resize', function(){ 
