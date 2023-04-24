@@ -15,6 +15,7 @@ class Player{
 		this.pathLines = new THREE.Object3D();
 		this.pathColor = new THREE.Color(0xFFFFFF);
 		this.nodeRadius = (options.nodeRadius) ? options.nodeRadius : 0.2;
+		this.radius = (options.radius) ? options.radius : 0.2;
 		
 		options.app.scene.add(this.pathLines);
 		
@@ -71,7 +72,7 @@ class Player{
 			this.action = 'walk';
 			
 			this.setTargetDirection();
-			
+			this.showPathLines();
 			if (this.app.debug.showPath && !this.npc){
 				this.showPathLines();
 			}

@@ -67,6 +67,8 @@ class Game{
 		this.loadingBar = new LoadingBar();
 		
 		this.loadEnvironment();
+
+		this.obstacles = [];
 		
 		const raycaster = new THREE.Raycaster();
     	this.renderer.domElement.addEventListener( 'click', raycast, false );
@@ -91,6 +93,7 @@ class Game{
 			
 			if (intersects.length>0){
 				const pt = intersects[0].point;
+				console.log(intersects[0])
 				
 				// Teleport on ctrl/cmd click or RMB.
 				if (e.metaKey || e.ctrlKey || e.button === 2) {
@@ -134,7 +137,12 @@ class Game{
 					intersects[i].point.y + 0.5, 
 					intersects[i].point.z
 					);
+				crate.name = "crate";
+				crate.index = self.obstacles.length;
 				self.scene.add(crate);
+				self.obstacles.push(crate)
+				console.log(crate)
+				console.log("width: " + crate.geometry.parameters.width)
 			}
 		}
 		
@@ -356,6 +364,7 @@ class Game{
 						clip: gltf.animations[0],
 						app: self,
 						name: 'ghoul',
+						radius: 0.5,
 						npc: true
 					};
 
@@ -368,6 +377,7 @@ class Game{
 					ghoul.newPath(self.randomWaypoint);
 					
 					self.ghouls.push(ghoul);
+					console.log(ghoul)
 				});
 							  
 				self.render(); 
@@ -467,6 +477,10 @@ class Game{
 			this.activeCamera = this.cameras.wide;
 		}
 	}
+
+	distance(x1, z1, x2, z2) {
+        return Math.sqrt((x2 - x1) * (x2 - x1) + (z2 - z1) * (z2 - z1));
+    }
 		
 	render(){
 		const dt = this.clock.getDelta();
@@ -486,6 +500,47 @@ class Game{
 		
 		this.fred.update(dt);
 		this.ghouls.forEach( ghoul => { ghoul.update(dt) });
+
+		// Obstacle collision
+		this.ghouls.forEach( ghoul => { 
+            this.obstacles.forEach( obstacle => {
+                let distance_with_obstacles = self.distance(ghoul.object.position.x, ghoul.object.position.z, obstacle.position.x, obstacle.position.z)
+				if (distance_with_obstacles < 1) {{
+					//console.log(distance_with_obstacles)
+				}}
+				
+                if (distance_with_obstacles <= obstacle.geometry.parameters.width) {
+                    ghoul.colliding = true;
+					console.log(ghoul.object.id + " is colliding with crate " + obstacle.index)
+					// console.log(ghoul.object.id + " is colliding with " + ghoul2.object.id)
+					// console.log("distance is " + distance_of_ghouls)
+					// console.log(ghoul.object.id + ": " + ghoul.actionName)
+					// console.log(ghoul2.object.id + ": " + ghoul2.actionName)
+                }
+                else if (distance_with_obstacles > ghoul.Radius && ghoul.colliding) {
+                    ghoul.colliding = false;
+                    //ghoul2.colliding = false;
+                }
+            })
+            
+        });
+
+		this.ghouls.forEach( ghoul => {
+			if (ghoul.colliding) {
+				ghoul.newPath(self.randomWaypoint)
+			}
+			if (ghoul.actionName == "idle") {
+				//console.log(ghoul.object.id + " IS IDLING")
+				//console.log(ghoul.calculatedPath.length)
+				ghoul.newPath(self.randomWaypoint)
+				console.log(ghoul.calculatedPath)
+			}
+		})
+		
+
+		//this.ghouls.forEach( ghoul => { console.log(ghoul) });
+		//debugger;
+		//console.log(this.obstacles.length)
 		
 		this.renderer.render(this.scene, this.camera);
 	}
