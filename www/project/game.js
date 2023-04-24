@@ -338,7 +338,7 @@ class Game{
 					ghoul.newPath(self.randomWaypoint);
 
 					spotLight = new THREE.SpotLight(0xffffff);
-					spotLight.position.copy(ghoul.object.position);
+					spotLight.position.set(ghoul.object.position.x, ghoul.object.position.y, ghoul.object.position.z);
 					spotLight.shadow.mapSize.width = 512;
 					spotLight.shadow.mapSize.height = 512;
 					spotLight.shadow.camera.near = 500;
@@ -348,16 +348,26 @@ class Game{
 					spotLight.intensity = 2;
 					spotLight.angle = Math.PI / 8;
 					// issue is that spotlights / targets look at the origin
-					// also there may be too may spotlights getting added?
+					// also there may be too may spotlights getting added? <- there's only 4 spotlights added, but the lighting and height of the spotlights is making it look weird
 					spotLightTarget = new THREE.Object3D();
-					spotLightTarget.lookAt(ghoul.object.position)
-					spotLight.target = spotLightTarget
-					//spotLight.target.position.set(ghoul.object.position)
-					ghoul.object.add(spotLight)
-					console.log("add spotLight")
-					
+
+					spotLight.position.set(ghoul.object.position.x, ghoul.object.position.y, ghoul.object.position.z);
+					// console.log(spotLightTarget.position.x)
+					// console.log(ghoul.calculatedPath[1])
+					if(ghoul.calculatedPath[1] != undefined){
+						spotLight.target.position.x = ghoul.calculatedPath[1].x
+						spotLight.target.position.z = ghoul.calculatedPath[1].z
+					}
+					console.log(ghoul.object.position.x)
+					console.log(spotLight.position.x)
+					// spotLight.position.x = ghoul.position.x
+					// spotLight.position.y = ghoul.position.y
+					// spotLight.position.z = ghoul.position.z
+					// spotLight.target = spotLightTarget
+					//spotLight.target.position.set(ghoul.object.position)	
+					ghoul.object.add(spotLight)		
 					self.ghouls.push(ghoul);
-					console.log(ghoul)
+					// console.log(ghoul)
 				});
 							  
 				self.render(); 
