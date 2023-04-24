@@ -141,8 +141,6 @@ class Game{
 				crate.index = self.obstacles.length;
 				self.scene.add(crate);
 				self.obstacles.push(crate)
-				console.log(crate)
-				console.log("width: " + crate.geometry.parameters.width)
 			}
 		}
 		
@@ -377,7 +375,6 @@ class Game{
 					ghoul.newPath(self.randomWaypoint);
 					
 					self.ghouls.push(ghoul);
-					console.log(ghoul)
 				});
 							  
 				self.render(); 
@@ -505,21 +502,13 @@ class Game{
 		this.ghouls.forEach( ghoul => { 
             this.obstacles.forEach( obstacle => {
                 let distance_with_obstacles = self.distance(ghoul.object.position.x, ghoul.object.position.z, obstacle.position.x, obstacle.position.z)
-				if (distance_with_obstacles < 1) {{
-					//console.log(distance_with_obstacles)
-				}}
 				
                 if (distance_with_obstacles <= obstacle.geometry.parameters.width) {
                     ghoul.colliding = true;
 					console.log(ghoul.object.id + " is colliding with crate " + obstacle.index)
-					// console.log(ghoul.object.id + " is colliding with " + ghoul2.object.id)
-					// console.log("distance is " + distance_of_ghouls)
-					// console.log(ghoul.object.id + ": " + ghoul.actionName)
-					// console.log(ghoul2.object.id + ": " + ghoul2.actionName)
                 }
                 else if (distance_with_obstacles > ghoul.Radius && ghoul.colliding) {
                     ghoul.colliding = false;
-                    //ghoul2.colliding = false;
                 }
             })
             
@@ -530,17 +519,11 @@ class Game{
 				ghoul.newPath(self.randomWaypoint)
 			}
 			if (ghoul.actionName == "idle") {
-				//console.log(ghoul.object.id + " IS IDLING")
-				//console.log(ghoul.calculatedPath.length)
 				ghoul.newPath(self.randomWaypoint)
 				console.log(ghoul.calculatedPath)
 			}
 		})
 		
-
-		//this.ghouls.forEach( ghoul => { console.log(ghoul) });
-		//debugger;
-		//console.log(this.obstacles.length)
 		
 		this.renderer.render(this.scene, this.camera);
 	}
