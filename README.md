@@ -25,3 +25,9 @@ npm run dev
 ```
 
 After this, the app will open in your browser. 
+
+### Simple game mechanics: 
+    1. Left click to move the character to a specified point
+    2. Switch cameras by clicking on the "switch camera" button on the top-right toolbar
+    3. Add more ghouls by specifying the amount you want to add on the top-right toolbar (default = 3)
+    4. Right click to add crates as obstacles
