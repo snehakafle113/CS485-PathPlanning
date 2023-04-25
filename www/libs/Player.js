@@ -72,7 +72,6 @@ class Player{
 			this.action = 'walk';
 			
 			this.setTargetDirection();
-			this.showPathLines();
 			if (this.app.debug.showPath && !this.npc){
 				this.showPathLines();
 			}
