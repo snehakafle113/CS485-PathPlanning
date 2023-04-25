@@ -15,6 +15,7 @@ class Player{
 		this.pathLines = new THREE.Object3D();
 		this.pathColor = new THREE.Color( Math.random() * 0xFFFFFF );
 		this.nodeRadius = (options.nodeRadius) ? options.nodeRadius : 0.2;
+		this.radius = (options.radius) ? options.radius : 0.3;
 		
 		options.app.scene.add(this.pathLines);
 		
@@ -72,15 +73,14 @@ class Player{
 				this.action = 'walk';
 				
 				this.setTargetDirection();
-				this.showPathLines()
+
 				if (this.app.debug.showPath && !this.npc){
 					this.showPathLines();
 				}
 			} else {
-				console.log('in the else of newpath()')
-				// this.dead = true;
-				this.action = 'idle';
-				//debugger;
+				this.dead = true;
+				this.action = 'die';
+
 				
 				if (this.pathLines) this.app.scene.remove(this.pathLines);
 			}
@@ -154,6 +154,12 @@ class Player{
 			action.time = 0;
 			this.mixer.stopAllAction();
 			this.actionName = name.toLowerCase();
+
+			if (this.actionName == "die") {
+				action.setLoop(THREE.LoopOnce);
+				action.clampWhenFinished = true;
+			}
+
 			this.actionTime = Date.now();
 			action.fadeIn(0.5);	
 			action.play();
@@ -201,16 +207,7 @@ class Player{
                 }
             }
         }else{
-            if (this.npc && !this.dead) {
-			//if (this.npc && !this.dead || this.colliding) {
-				this.newPath(this.app.randomWaypoint);
-				// console.log(this)
-			} else {
-				// may be helpful for the remove
-				//console.log(this)
-				//debugger;
-				
-			}
+            if (this.npc && !this.dead) this.newPath(this.app.randomWaypoint);
         }
     }
 }

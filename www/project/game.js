@@ -325,12 +325,13 @@ class Game{
 						clip: gltf.animations[0],
 						app: self,
 						name: 'ghoul',
+						radius: 0.5,
 						npc: true
 					};
 
 
 					const ghoul = new Player(options);				
-					ghoul.colliding = false	
+					ghoul.colliding = false;
 
 					const scale = 0.015;
 					ghoul.object.scale.set(scale, scale, scale);
@@ -461,21 +462,17 @@ class Game{
 		
 		this.fred.update(dt);
 		this.ghouls.forEach( ghoul => { ghoul.update(dt) });	
-		this.ghouls.forEach( ghoul => { ghoul.update(dt) });		// makes them go faster
+		// this.ghouls.forEach( ghoul => { ghoul.update(dt) });		// makes them go faster
 
         this.ghouls.forEach( ghoul => { 
             this.ghouls.forEach( ghoul2 => {
                 let distance_of_ghouls = self.distance(ghoul.object.position.x, ghoul.object.position.z, ghoul2.object.position.x, ghoul2.object.position.z)
 
-                if (distance_of_ghouls <= ghoul.nodeRadius && ghoul.object.id != ghoul2.object.id) {
+                if (distance_of_ghouls <= ghoul.radius && ghoul.object.id != ghoul2.object.id) {
                     ghoul.colliding = true;
                     ghoul2.colliding = true;
-					console.log(ghoul.object.id + " is colliding with " + ghoul2.object.id)
-					//console.log("distance is " + distance_of_ghouls)
-					console.log(ghoul.object.id + ": " + ghoul.actionName)
-					console.log(ghoul2.object.id + ": " + ghoul2.actionName)
                 }
-                else if (distance_of_ghouls > ghoul.nodeRadius && ghoul.colliding && ghoul2.colliding) {
+                else if (distance_of_ghouls > ghoul.radius && ghoul.colliding && ghoul2.colliding) {
                     ghoul.colliding = false;
                     ghoul2.colliding = false;
                 }
@@ -486,31 +483,26 @@ class Game{
 		this.ghouls.forEach( ghoul => { 
 			let distance_with_fred = self.distance(ghoul.object.position.x, ghoul.object.position.z, this.fred.object.position.x, this.fred.object.position.z)
 
-			if (distance_with_fred <= ghoul.nodeRadius) {
+			if (distance_with_fred <= ghoul.radius) {
 				ghoul.colliding = true;
 				this.fred.colliding = true;
-				console.log(ghoul.object.id + " is colliding with " + this.fred.name)
-				console.log("distance is " + distance_with_fred)
 				alert('YOU LOSE\nTime: ' + this.clock.elapsedTime.toFixed(2) + " seconds")
 			}
-			else if (distance_with_fred > ghoul.nodeRadius && ghoul.colliding && this.fred.colliding) {
+			else if (distance_with_fred > ghoul.radius && ghoul.colliding && this.fred.colliding) {
 				ghoul.colliding = false;
 				this.fred.colliding = false;
 			}
             
         });
-		// TODO: they sometimes get stuck (possibly due to waypoints?)
-		// animation changes from walk to idle
-		// calculatedPath becomes null
+
+		// Set colliding ghouls on new paths
 		this.ghouls.forEach( ghoul => {
 			if (ghoul.colliding) {
 				ghoul.newPath(self.randomWaypoint)
 			}
+			// attempt
 			if (ghoul.actionName == "idle") {
-				console.log(ghoul.object.id + " IS IDLING")
-				//console.log(ghoul.calculatedPath.length)
 				ghoul.newPath(self.randomWaypoint)
-				console.log(ghoul.calculatedPath)
 			}
 		})
 		
