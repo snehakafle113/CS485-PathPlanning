@@ -124,17 +124,19 @@ class Game{
 
 			const intersects = raycaster.intersectObject( self.navmesh );
 
+			const textureLoader = new THREE.TextureLoader();
+			const crateTexture = textureLoader.load(`${assetsPath}cratewip02.jpg`)
+			console.log(crateTexture)
+
 			for (var i = 0; i < intersects.length; i++) {
 	
 				const boxGeometry = new THREE.BoxGeometry(2, 2, 2);
-				const boxMaterial = new THREE.MeshPhongMaterial( {
-					color: 0x4b3621
-				});
+				const boxMaterial = new THREE.MeshBasicMaterial({ map: crateTexture})
 				const crate = new THREE.Mesh( boxGeometry, boxMaterial );
 				crate.castShadow = true;
 				crate.position.set(
 					intersects[i].point.x, 
-					intersects[i].point.y + 0.5, 
+					intersects[i].point.y + 0.7, 
 					intersects[i].point.z
 					);
 				crate.name = "crate";
