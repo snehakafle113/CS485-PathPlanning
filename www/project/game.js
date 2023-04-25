@@ -8,6 +8,7 @@ import { Pathfinding } from '../libs/three-pathfinding.module.js';
 import * as dat from 'lil-gui'
 
 const assetsPath = '../assets/';
+const gui = new dat.GUI();
 
 class Game{
 	constructor(){		
@@ -72,6 +73,8 @@ class Game{
     	this.renderer.domElement.addEventListener( 'click', raycast, false );
 			
     	this.loading = true;
+
+		this.numGhouls = 3
     	
     	const self = this;
     	const mouse = { x:0, y:0 };
@@ -255,10 +258,13 @@ class Game{
 				self.cameras = { wide, rear, front };
 				self.activeCamera = wide;
 				
-				const gui = new dat.GUI();
+				// const gui = new dat.GUI();
 				gui.add(self, 'switchCamera');
 				gui.add(self, 'showPath');
 				gui.add(self, 'showShadowHelper');
+				gui.add(self, 'numGhouls').min(0).max(10).step(1).name("Number of Ghouls").onFinishChange(value => {
+					if (value > 0) self.addGhoul(value, true)
+				});
 				
 				self.loadGhoul();
 
@@ -278,11 +284,12 @@ class Game{
 		);
 	}
 	
-	loadGhoul(){
+	loadGhoul(numberOfGhouls){
 		const loader = new GLTFLoader();
 		const self = this;
 
-		const numGhouls = 3
+		numberOfGhouls = self.numGhouls
+		
 
 		const anims = [
 					{start:81, end:161, name:"idle", loop:true},
@@ -301,9 +308,12 @@ class Game{
 			// called when the resource is loaded
 			function ( gltf ) {
 				const gltfs = [gltf];
-				// change bound to add/subtract ghouls
-				for(let i=0; i<numGhouls; i++) gltfs.push(self.cloneGLTF(gltf));
 				
+				for(let i=0; i<numberOfGhouls; i++) gltfs.push(self.cloneGLTF(gltf));
+
+				// this removes the ones that were just added
+				//for(let i=0; i<=numberOfGhouls; i++) gltfs.pop(i);
+
 				self.ghouls = [];
 				
 				gltfs.forEach(function(gltf){
@@ -336,6 +346,87 @@ class Game{
 					ghoul.object.position.copy(self.randomWaypoint);
 					ghoul.newPath(self.randomWaypoint);
 
+					self.ghouls.push(ghoul);
+				});
+							  
+				self.render(); 
+				
+				self.loadingBar.visible = false;
+			},
+			// called while loading is progressing
+			function ( xhr ) {
+
+				self.loadingBar.progress = (xhr.loaded / xhr.total) * 0.33 + 0.67;
+
+			},
+			// called when loading has errors
+			function ( error ) {
+
+				console.error( error.message );
+
+			}
+		);
+	}
+
+	addGhoul(numberOfGhouls) {
+		const loader = new GLTFLoader();
+		const self = this;
+
+		let addGhoulsNum = numberOfGhouls
+		
+
+		const anims = [
+					{start:81, end:161, name:"idle", loop:true},
+					{start:250, end:290, name:"block", loop:false},
+					{start:300, end:320, name:"gethit", loop:false},
+					{start:340, end:375, name:"die", loop:false},
+					{start:380, end:430, name:"attack", loop:false},
+					{start:470, end:500, name:"walk", loop:true},
+					{start:540, end:560, name:"run", loop:true}
+				];
+		
+		// Load a GLTF resource
+		loader.load(
+			// resource URL
+			`${assetsPath}ghoul.glb`,
+			// called when the resource is loaded
+			function ( gltf ) {
+				const gltfs = [gltf];
+
+				for(let i=0; i<addGhoulsNum; i++) {
+					gltfs.push(self.cloneGLTF(gltf));
+				}
+
+				
+				gltfs.forEach(function(gltf){
+					const object = gltf.scene.children[0];
+
+					object.traverse(function(child){
+						if (child.isMesh){
+							child.castShadow = true;
+						}
+					});
+
+					const options = {
+						object: object,
+						speed: 4,
+						assetsPath: assetsPath,
+						loader: loader,
+						anims: anims,
+						clip: gltf.animations[0],
+						app: self,
+						name: 'ghoul',
+						npc: true
+					};
+
+					const ghoul = new Player(options);
+
+					const scale = 0.015;
+					ghoul.object.scale.set(scale, scale, scale);
+
+					ghoul.object.position.copy(self.randomWaypoint);
+					ghoul.newPath(self.randomWaypoint);
+					
 					self.ghouls.push(ghoul);
 				});
 							  
