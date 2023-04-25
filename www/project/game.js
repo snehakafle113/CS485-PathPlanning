@@ -337,6 +337,7 @@ class Game{
 						npc: true
 					};
 
+
 					const ghoul = new Player(options);
 
 					const scale = 0.015;
@@ -344,7 +345,7 @@ class Game{
 
 					ghoul.object.position.copy(self.randomWaypoint);
 					ghoul.newPath(self.randomWaypoint);
-					
+
 					self.ghouls.push(ghoul);
 				});
 							  
