@@ -67,9 +67,12 @@ class Game{
 		this.loadingBar = new LoadingBar();
 		
 		this.loadEnvironment();
+
+		this.obstacles = [];
 		
 		const raycaster = new THREE.Raycaster();
     	this.renderer.domElement.addEventListener( 'click', raycast, false );
+		this.renderer.domElement.addEventListener('contextmenu', addObstacles);
 			
     	this.loading = true;
 
@@ -92,6 +95,7 @@ class Game{
 			
 			if (intersects.length>0){
 				const pt = intersects[0].point;
+				console.log(intersects[0])
 				
 				// Teleport on ctrl/cmd click or RMB.
 				if (e.metaKey || e.ctrlKey || e.button === 2) {
@@ -107,6 +111,41 @@ class Game{
 				
 				self.fred.newPath(pt, true);
 			}	
+		}
+
+		function addObstacles(e) {
+			if (self.loading) return;
+			e.preventDefault()
+
+			mouse.x = ( e.clientX / window.innerWidth ) * 2 - 1;
+			mouse.y = - ( e.clientY / window.innerHeight ) * 2 + 1;
+
+			console.log("You right-clicked at (" + mouse.x + ", " + mouse.y + ")")
+
+			raycaster.setFromCamera( mouse, self.camera );    
+
+			const intersects = raycaster.intersectObject( self.navmesh );
+
+			const textureLoader = new THREE.TextureLoader();
+			const crateTexture = textureLoader.load(`${assetsPath}cratewip02.jpg`)
+			console.log(crateTexture)
+
+			for (var i = 0; i < intersects.length; i++) {
+	
+				const boxGeometry = new THREE.BoxGeometry(2, 2, 2);
+				const boxMaterial = new THREE.MeshBasicMaterial({ map: crateTexture})
+				const crate = new THREE.Mesh( boxGeometry, boxMaterial );
+				crate.castShadow = true;
+				crate.position.set(
+					intersects[i].point.x, 
+					intersects[i].point.y + 0.7, 
+					intersects[i].point.z
+					);
+				crate.name = "crate";
+				crate.index = self.obstacles.length;
+				self.scene.add(crate);
+				self.obstacles.push(crate)
+			}
 		}
 		
 		window.addEventListener('resize', function(){ 
@@ -342,6 +381,7 @@ class Game{
 						clip: gltf.animations[0],
 						app: self,
 						name: 'ghoul',
+						radius: 0.5,
 						npc: true
 					};
 
@@ -538,6 +578,10 @@ class Game{
 			this.activeCamera = this.cameras.wide
 		}
 	}
+
+	distance(x1, z1, x2, z2) {
+        return Math.sqrt((x2 - x1) * (x2 - x1) + (z2 - z1) * (z2 - z1));
+    }
 		
 	render(){
 		const dt = this.clock.getDelta();
@@ -557,6 +601,33 @@ class Game{
 		
 		this.fred.update(dt);
 		this.ghouls.forEach( ghoul => { ghoul.update(dt) });
+
+		// Obstacle collision
+		this.ghouls.forEach( ghoul => { 
+            this.obstacles.forEach( obstacle => {
+                let distance_with_obstacles = self.distance(ghoul.object.position.x, ghoul.object.position.z, obstacle.position.x, obstacle.position.z)
+				
+                if (distance_with_obstacles <= obstacle.geometry.parameters.width) {
+                    ghoul.colliding = true;
+					console.log(ghoul.object.id + " is colliding with crate " + obstacle.index)
+                }
+                else if (distance_with_obstacles > ghoul.Radius && ghoul.colliding) {
+                    ghoul.colliding = false;
+                }
+            })
+            
+        });
+
+		this.ghouls.forEach( ghoul => {
+			if (ghoul.colliding) {
+				ghoul.newPath(self.randomWaypoint)
+			}
+			if (ghoul.actionName == "idle") {
+				ghoul.newPath(self.randomWaypoint)
+				console.log(ghoul.calculatedPath)
+			}
+		})
+		
 		
 		this.renderer.render(this.scene, this.camera);
 	}
