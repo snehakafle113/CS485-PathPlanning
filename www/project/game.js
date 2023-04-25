@@ -491,6 +491,7 @@ class Game{
 				this.fred.colliding = true;
 				console.log(ghoul.object.id + " is colliding with " + this.fred.name)
 				console.log("distance is " + distance_with_fred)
+				alert('YOU LOSE\nTime: ' + this.clock.elapsedTime.toFixed(2) + " seconds")
 			}
 			else if (distance_with_fred > ghoul.nodeRadius && ghoul.colliding && this.fred.colliding) {
 				ghoul.colliding = false;
