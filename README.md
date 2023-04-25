@@ -9,7 +9,7 @@ This project builds on the already-existing complex pathfinding project from Nik
     1. Spotlights for player detection
     2. First person camera
     3. Collision control
-    4. User interaction and rewards
+    4. User interaction and gamification
 
 ### How to run the project: 
 
