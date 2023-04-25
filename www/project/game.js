@@ -4,7 +4,6 @@ import { RGBELoader } from '../libs/RGBELoader.js';
 import { Player } from '../libs/Player.js';
 import { LoadingBar } from '../libs/LoadingBar.js';
 import { Pathfinding } from '../libs/three-pathfinding.module.js';
-//import * as dat from '../libs/dat.gui.module.js';
 import * as dat from 'lil-gui'
 
 const assetsPath = '../assets/';
@@ -247,15 +246,24 @@ class Game{
 				const wide = new THREE.Object3D();
 				wide.position.copy(self.camera.position);
 				wide.target = new THREE.Vector3(0,0,0);
+
 				const rear = new THREE.Object3D()
 				rear.position.set(0, 500, -500);
 				rear.target = self.fred.object.position;
 				self.fred.object.add(rear);
+
 				const front = new THREE.Object3D()
 				front.position.set(0, 500, 500);
 				front.target = self.fred.object.position;
 				self.fred.object.add(front);
-				self.cameras = { wide, rear, front };
+
+				const fps = new THREE.Object3D();
+				fps.position.set(10, 130, -50);
+				fps.target = self.fred.object.position;
+				self.fred.object.add(fps)
+
+
+				self.cameras = { wide, rear, front, fps };
 				self.activeCamera = wide;
 				
 				// const gui = new dat.GUI();
@@ -518,12 +526,16 @@ class Game{
 	}
 	
 	switchCamera(){
+		this.fred.object.children[3].material.visible = true;
 		if (this.activeCamera==this.cameras.wide){
 			this.activeCamera = this.cameras.rear;
 		}else if (this.activeCamera==this.cameras.rear){
 			this.activeCamera = this.cameras.front;
 		}else if (this.activeCamera==this.cameras.front){
-			this.activeCamera = this.cameras.wide;
+			this.fred.object.children[3].material.visible = false;
+			this.activeCamera = this.cameras.fps;
+		} else if (this.activeCamera==this.cameras.fps) {
+			this.activeCamera = this.cameras.wide
 		}
 	}
 		
