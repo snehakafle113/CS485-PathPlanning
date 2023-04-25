@@ -1,17 +1,17 @@
 # Expansion to Nik Lever's Pathfinding example
 
-## Background
+### Background
 Team members: Adrian Geoffroy and Sneha Kafle
 
 This project builds on the already-existing complex pathfinding project from Nik Lever, which can be found here: https://github.com/NikLever/ThreeJS-PathFinding-Examples
 
-### Some things we added include: 
+#### Some things we added include: 
     1. Spotlights for player detection
     2. First person camera
     3. Collision control
     4. User interaction and rewards
 
-## How to run the project: 
+### How to run the project: 
 
 First, clone the repository: 
 ```
