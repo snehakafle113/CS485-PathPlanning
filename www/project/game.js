@@ -69,6 +69,11 @@ class Game{
 		this.loadEnvironment();
 
 		this.obstacles = [];
+
+		// Add collectables
+		this.collectables = [];
+
+		this.score = 0;
 		
 		const raycaster = new THREE.Raycaster();
     	this.renderer.domElement.addEventListener( 'click', raycast, false );
@@ -95,7 +100,7 @@ class Game{
 			
 			if (intersects.length>0){
 				const pt = intersects[0].point;
-				console.log(intersects[0])
+				//console.log(intersects[0])
 				
 				// Teleport on ctrl/cmd click or RMB.
 				if (e.metaKey || e.ctrlKey || e.button === 2) {
@@ -204,6 +209,7 @@ class Game{
 				self.pathfinder.setZoneData(self.ZONE, Pathfinding.createZone(self.navmesh.geometry));
 
 				self.loadFred();
+				self.loadCollectables();
 			},
 			// called while loading is progressing
 			function ( xhr ) {
@@ -218,6 +224,29 @@ class Game{
 
 			}
 		);
+	}
+
+	loadCollectables() {
+
+		const textureLoader = new THREE.TextureLoader();
+		const gemTexture = textureLoader.load(`${assetsPath}crystal-gem-texture.png`)
+		const gemRadius = .5
+		const gemGeomtery = new THREE.TetrahedronGeometry(gemRadius, 1);
+		const gemMaterial = new THREE.MeshBasicMaterial({ map: gemTexture })
+
+		for (let i = 0; i < this.waypoints.length; i++) {
+			const gem = new THREE.Mesh( gemGeomtery, gemMaterial );
+			gem.name = 'gem'
+			gem.radius = gemRadius
+			gem.castShadow = true;
+			gem.position.copy(this.waypoints[i])
+			gem.position.y = this.waypoints[i].y + 1.5;
+
+			this.collectables.push(gem)
+			this.scene.add(gem);
+
+		}
+
 	}
 	
 	loadFred(){
@@ -310,7 +339,7 @@ class Game{
 				gui.add(self, 'showPath');
 				gui.add(self, 'showShadowHelper');
 				gui.add(self, 'numGhouls').min(0).max(10).step(1).name("Number of Ghouls").onFinishChange(value => {
-					if (value > 0) self.addGhoul(value, true)
+					if (value > 0) self.addGhoul(value)
 				});
 				
 				self.loadGhoul();
@@ -607,9 +636,8 @@ class Game{
             this.obstacles.forEach( obstacle => {
                 let distance_with_obstacles = self.distance(ghoul.object.position.x, ghoul.object.position.z, obstacle.position.x, obstacle.position.z)
 				
-                if (distance_with_obstacles <= obstacle.geometry.parameters.width) {
+                if (distance_with_obstacles <= (obstacle.geometry.parameters.width / 2)) {
                     ghoul.colliding = true;
-					console.log(ghoul.object.id + " is colliding with crate " + obstacle.index)
                 }
                 else if (distance_with_obstacles > ghoul.Radius && ghoul.colliding) {
                     ghoul.colliding = false;
@@ -624,11 +652,21 @@ class Game{
 			}
 			if (ghoul.actionName == "idle") {
 				ghoul.newPath(self.randomWaypoint)
-				console.log(ghoul.calculatedPath)
 			}
 		})
-		
-		
+
+		this.collectables.forEach( collectable => {
+			collectable.rotation.y += .01
+			collectable.rotation.z += .01
+
+			let distance_with_collectable = self.distance(collectable.position.x, collectable.position.z, this.fred.object.position.x, this.fred.object.position.z)
+			
+			if (distance_with_collectable <= collectable.radius) {
+				this.scene.remove(collectable)
+				this.collectables.splice(this.collectables.indexOf(collectable), 1)
+				this.score += 1
+			}
+		})
 		this.renderer.render(this.scene, this.camera);
 	}
 }
