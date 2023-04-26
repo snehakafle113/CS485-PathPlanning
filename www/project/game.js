@@ -4,10 +4,10 @@ import { RGBELoader } from '../libs/RGBELoader.js';
 import { Player } from '../libs/Player.js';
 import { LoadingBar } from '../libs/LoadingBar.js';
 import { Pathfinding } from '../libs/three-pathfinding.module.js';
-//import * as dat from '../libs/dat.gui.module.js';
 import * as dat from 'lil-gui'
 
 const assetsPath = '../assets/';
+const gui = new dat.GUI();
 
 class Game{
 	constructor(){		
@@ -67,11 +67,16 @@ class Game{
 		this.loadingBar = new LoadingBar();
 		
 		this.loadEnvironment();
+
+		this.obstacles = [];
 		
 		const raycaster = new THREE.Raycaster();
     	this.renderer.domElement.addEventListener( 'click', raycast, false );
+		this.renderer.domElement.addEventListener('contextmenu', addObstacles);
 			
     	this.loading = true;
+
+		this.numGhouls = 3
     	
     	const self = this;
     	const mouse = { x:0, y:0 };
@@ -90,6 +95,7 @@ class Game{
 			
 			if (intersects.length>0){
 				const pt = intersects[0].point;
+				console.log(intersects[0])
 				
 				// Teleport on ctrl/cmd click or RMB.
 				if (e.metaKey || e.ctrlKey || e.button === 2) {
@@ -105,6 +111,41 @@ class Game{
 				
 				self.fred.newPath(pt, true);
 			}	
+		}
+
+		function addObstacles(e) {
+			if (self.loading) return;
+			e.preventDefault()
+
+			mouse.x = ( e.clientX / window.innerWidth ) * 2 - 1;
+			mouse.y = - ( e.clientY / window.innerHeight ) * 2 + 1;
+
+			console.log("You right-clicked at (" + mouse.x + ", " + mouse.y + ")")
+
+			raycaster.setFromCamera( mouse, self.camera );    
+
+			const intersects = raycaster.intersectObject( self.navmesh );
+
+			const textureLoader = new THREE.TextureLoader();
+			const crateTexture = textureLoader.load(`${assetsPath}cratewip02.jpg`)
+			console.log(crateTexture)
+
+			for (var i = 0; i < intersects.length; i++) {
+	
+				const boxGeometry = new THREE.BoxGeometry(2, 2, 2);
+				const boxMaterial = new THREE.MeshBasicMaterial({ map: crateTexture})
+				const crate = new THREE.Mesh( boxGeometry, boxMaterial );
+				crate.castShadow = true;
+				crate.position.set(
+					intersects[i].point.x, 
+					intersects[i].point.y + 0.7, 
+					intersects[i].point.z
+					);
+				crate.name = "crate";
+				crate.index = self.obstacles.length;
+				self.scene.add(crate);
+				self.obstacles.push(crate)
+			}
 		}
 		
 		window.addEventListener('resize', function(){ 
@@ -244,21 +285,33 @@ class Game{
 				const wide = new THREE.Object3D();
 				wide.position.copy(self.camera.position);
 				wide.target = new THREE.Vector3(0,0,0);
+
 				const rear = new THREE.Object3D()
 				rear.position.set(0, 500, -500);
 				rear.target = self.fred.object.position;
 				self.fred.object.add(rear);
+
 				const front = new THREE.Object3D()
 				front.position.set(0, 500, 500);
 				front.target = self.fred.object.position;
 				self.fred.object.add(front);
-				self.cameras = { wide, rear, front };
+
+				const fps = new THREE.Object3D();
+				fps.position.set(10, 130, -50);
+				fps.target = self.fred.object.position;
+				self.fred.object.add(fps)
+
+
+				self.cameras = { wide, rear, front, fps };
 				self.activeCamera = wide;
 				
-				const gui = new dat.GUI();
+				// const gui = new dat.GUI();
 				gui.add(self, 'switchCamera');
 				gui.add(self, 'showPath');
 				gui.add(self, 'showShadowHelper');
+				gui.add(self, 'numGhouls').min(0).max(10).step(1).name("Number of Ghouls").onFinishChange(value => {
+					if (value > 0) self.addGhoul(value, true)
+				});
 				
 				self.loadGhoul();
 
@@ -278,11 +331,12 @@ class Game{
 		);
 	}
 	
-	loadGhoul(){
+	loadGhoul(numberOfGhouls){
 		const loader = new GLTFLoader();
 		const self = this;
 
-		const numGhouls = 3
+		numberOfGhouls = self.numGhouls
+		
 
 		const anims = [
 					{start:81, end:161, name:"idle", loop:true},
@@ -301,9 +355,12 @@ class Game{
 			// called when the resource is loaded
 			function ( gltf ) {
 				const gltfs = [gltf];
-				// change bound to add/subtract ghouls
-				for(let i=0; i<numGhouls; i++) gltfs.push(self.cloneGLTF(gltf));
 				
+				for(let i=0; i<numberOfGhouls; i++) gltfs.push(self.cloneGLTF(gltf));
+
+				// this removes the ones that were just added
+				//for(let i=0; i<=numberOfGhouls; i++) gltfs.pop(i);
+
 				self.ghouls = [];
 				
 				gltfs.forEach(function(gltf){
@@ -326,6 +383,7 @@ class Game{
 						app: self,
 						name: 'ghoul',
 						radius: 0.5,
+						radius: 0.5,
 						npc: true
 					};
 
@@ -338,9 +396,89 @@ class Game{
 
 					ghoul.object.position.copy(self.randomWaypoint);
 					ghoul.newPath(self.randomWaypoint);
+
+					self.ghouls.push(ghoul);
+				});
+							  
+				self.render(); 
+				
+				self.loadingBar.visible = false;
+			},
+			// called while loading is progressing
+			function ( xhr ) {
+
+				self.loadingBar.progress = (xhr.loaded / xhr.total) * 0.33 + 0.67;
+
+			},
+			// called when loading has errors
+			function ( error ) {
+
+				console.error( error.message );
+
+			}
+		);
+	}
+
+	addGhoul(numberOfGhouls) {
+		const loader = new GLTFLoader();
+		const self = this;
+
+		let addGhoulsNum = numberOfGhouls
+		
+
+		const anims = [
+					{start:81, end:161, name:"idle", loop:true},
+					{start:250, end:290, name:"block", loop:false},
+					{start:300, end:320, name:"gethit", loop:false},
+					{start:340, end:375, name:"die", loop:false},
+					{start:380, end:430, name:"attack", loop:false},
+					{start:470, end:500, name:"walk", loop:true},
+					{start:540, end:560, name:"run", loop:true}
+				];
+		
+		// Load a GLTF resource
+		loader.load(
+			// resource URL
+			`${assetsPath}ghoul.glb`,
+			// called when the resource is loaded
+			function ( gltf ) {
+				const gltfs = [gltf];
+
+				for(let i=0; i<addGhoulsNum; i++) {
+					gltfs.push(self.cloneGLTF(gltf));
+				}
+
+				
+				gltfs.forEach(function(gltf){
+					const object = gltf.scene.children[0];
+
+					object.traverse(function(child){
+						if (child.isMesh){
+							child.castShadow = true;
+						}
+					});
+
+					const options = {
+						object: object,
+						speed: 4,
+						assetsPath: assetsPath,
+						loader: loader,
+						anims: anims,
+						clip: gltf.animations[0],
+						app: self,
+						name: 'ghoul',
+						npc: true
+					};
+
+					const ghoul = new Player(options);
+
+					const scale = 0.015;
+					ghoul.object.scale.set(scale, scale, scale);
+
+					ghoul.object.position.copy(self.randomWaypoint);
+					ghoul.newPath(self.randomWaypoint);
 					
 					self.ghouls.push(ghoul);
-
 				});
 							  
 				self.render(); 
@@ -431,12 +569,16 @@ class Game{
 	}
 	
 	switchCamera(){
+		this.fred.object.children[3].material.visible = true;
 		if (this.activeCamera==this.cameras.wide){
 			this.activeCamera = this.cameras.rear;
 		}else if (this.activeCamera==this.cameras.rear){
 			this.activeCamera = this.cameras.front;
 		}else if (this.activeCamera==this.cameras.front){
-			this.activeCamera = this.cameras.wide;
+			this.fred.object.children[3].material.visible = false;
+			this.activeCamera = this.cameras.fps;
+		} else if (this.activeCamera==this.cameras.fps) {
+			this.activeCamera = this.cameras.wide
 		}
 	}
 

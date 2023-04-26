@@ -20,7 +20,28 @@ class Player{
 		options.app.scene.add(this.pathLines);
 		
 		this.npc = options.npc;
-        
+
+		if (this.npc) {
+			this.spotLight = new THREE.SpotLight(0xffffff);
+			this.spotLight.position.copy(this.object.position);
+			this.spotLight.shadow.mapSize.width = 512;
+			this.spotLight.shadow.mapSize.height = 512;
+			this.spotLight.shadow.camera.near = 500;
+			this.spotLight.shadow.camera.far = 4000;
+			this.spotLight.shadow.camera.fov = 30;
+			this.spotLight.intensity = 10;
+			this.spotLight.distance = 10;
+			this.spotLight.decay = 1
+			this.spotLight.angle = Math.PI / 8;
+	
+			this.object.add(this.spotLight);
+	
+			this.spotLightTarget = new THREE.Object3D();
+			this.spotLight.target = this.spotLightTarget
+		}
+
+		options.app.scene.add(this.spotLightTarget)
+
         if (this.npc) this.dead = false;
 		
         this.speed = options.speed;
@@ -175,6 +196,13 @@ class Player{
 		
         if (this.calculatedPath && this.calculatedPath.length) {
             const targetPosition = this.calculatedPath[0];
+
+			// might need to add to an else clause for if they are stuck / dead
+			if (this.npc) {
+				this.spotLight.target.position.x = this.calculatedPath[0].x
+				this.spotLight.target.position.y = this.calculatedPath[0].y	
+				this.spotLight.target.position.z = this.calculatedPath[0].z	
+			}
 
             const vel = targetPosition.clone().sub(player.position);
             
