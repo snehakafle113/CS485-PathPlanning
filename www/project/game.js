@@ -672,7 +672,7 @@ class Game{
 			if (distance_with_fred <= ghoul.radius) {
 				ghoul.colliding = true;
 				this.fred.colliding = true;
-				alert('YOU LOSE\nTime: ' + this.clock.elapsedTime.toFixed(2) + " seconds")
+				alert('YOU LOSE\nTime: ' + this.clock.elapsedTime.toFixed(2) + " seconds\nScore: " + this.score)
 			}
 			else if (distance_with_fred > ghoul.radius && ghoul.colliding && this.fred.colliding) {
 				ghoul.colliding = false;
