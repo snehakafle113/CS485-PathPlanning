@@ -125,8 +125,6 @@ class Game{
 			mouse.x = ( e.clientX / window.innerWidth ) * 2 - 1;
 			mouse.y = - ( e.clientY / window.innerHeight ) * 2 + 1;
 
-			console.log("You right-clicked at (" + mouse.x + ", " + mouse.y + ")")
-
 			raycaster.setFromCamera( mouse, self.camera );    
 
 			const intersects = raycaster.intersectObject( self.navmesh );
@@ -641,7 +639,7 @@ class Game{
             this.obstacles.forEach( obstacle => {
                 let distance_with_obstacles = self.distance(ghoul.object.position.x, ghoul.object.position.z, obstacle.position.x, obstacle.position.z)
 				
-                if (distance_with_obstacles <= (obstacle.geometry.parameters.width / 2)) {
+                if (distance_with_obstacles <= (obstacle.geometry.parameters.width)) {
                     ghoul.colliding = true;
 				}
                 else if (distance_with_obstacles > ghoul.Radius && ghoul.colliding) {
@@ -672,7 +670,7 @@ class Game{
 			if (distance_with_fred <= ghoul.radius) {
 				ghoul.colliding = true;
 				this.fred.colliding = true;
-				alert('YOU LOSE\nTime: ' + this.clock.elapsedTime.toFixed(2) + " seconds\nScore: " + this.score)
+				alert('Score Board\nTime: ' + this.clock.elapsedTime.toFixed(2) + " seconds\nGhouls: " + this.ghouls.length + "\nGems: " + this.score)
 			}
 			else if (distance_with_fred > ghoul.radius && ghoul.colliding && this.fred.colliding) {
 				ghoul.colliding = false;
