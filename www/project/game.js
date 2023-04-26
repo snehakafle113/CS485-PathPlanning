@@ -647,6 +647,20 @@ class Game{
         });
 
 		this.ghouls.forEach( ghoul => {
+			this.ghouls.forEach( ghoul2 => {
+				let distance_of_ghouls = self.distance(ghoul.object.position.x, ghoul.object.position.z, ghoul2.object.position.x, ghoul2.object.position.z)
+				if (distance_of_ghouls <= ghoul.radius && ghoul.object.id != ghoul2.object.id) {
+                    ghoul.colliding = true;
+                    ghoul2.colliding = true;
+                }
+				else if (distance_of_ghouls > ghoul.radius && ghoul.colliding && ghoul2.colliding) {
+                    ghoul.colliding = false;
+                    ghoul2.colliding = false;
+                }
+			})
+		})
+
+		this.ghouls.forEach( ghoul => {
 			if (ghoul.colliding) {
 				ghoul.newPath(self.randomWaypoint)
 			}
